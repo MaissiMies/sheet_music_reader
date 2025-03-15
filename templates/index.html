@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sheet Music Reader</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            zoom: 1.25;
+            -moz-transform: scale(1.25);
+            -moz-transform-origin: 0 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .upload-area {
+            background-color: white;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #666;
+            background-color: #f9f9f9;
+        }
+        .upload-area.dragover {
+            border-color: #4CAF50;
+            background-color: #E8F5E9;
+        }
+        .main-content {
+            display: flex;
+            gap: 25px;
+            margin-top: 25px;
+        }
+        .left-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        .right-section {
+            width: 350px;
+        }
+        .preview-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .preview-container img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        .notes-display {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-family: monospace;
+            line-height: 1.5;
+        }
+        #notes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            white-space: normal;
+        }
+        .note-item {
+            background-color: #e3f2fd;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border: 1px solid #90caf9;
+            display: inline-block;
+            margin: 3px;
+            font-size: 1.2em;
+            min-width: 50px;
+            text-align: center;
+        }
+        .fingering-chart {
+            background-color: #f8f9fa;
+            padding: 50px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+            position: sticky;
+            top: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            height: fit-content;
+            transform: scale(1.0);
+            transform-origin: top center;
+        }
+        .fingering-chart img {
+            width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: scale(1.1);
+            transform-origin: top center;
+        }
+        .fingering-chart h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+        }
+        .fingering-chart p {
+            color: #666;
+            font-size: 1.1em;
+            margin: 15px 0 0;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 4px;
+        }
+        #fileInput {
+            display: none;
+        }
+        .error-message {
+            color: #f44336;
+            margin-top: 10px;
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sheet Music Reader</h1>
+        <div class="upload-area" id="dropZone">
+            <input type="file" id="fileInput" accept=".pdf">
+            <p>Drag and drop a PDF file here or click to select</p>
+            <p class="error-message" id="errorMessage"></p>
+        </div>
+        <div class="loading" id="loading">Processing...</div>
+        <div class="main-content">
+            <div class="left-section">
+                <div class="preview-container">
+                    <h2>Sheet Music Preview</h2>
+                    <img id="preview" src="" alt="Sheet Music Preview" style="display: none;">
+                </div>
+                <div class="notes-display">
+                    <h2>Detected Notes</h2>
+                    <div id="notes"></div>
+                </div>
+            </div>
+            <div class="right-section">
+                <div class="fingering-chart">
+                    <h2>Alto Saxophone Fingering Chart</h2>
+                    <img src="{{ url_for('static', filename='Fingering_Chart.jpg') }}" alt="Alto Saxophone Fingering Chart">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const notes = document.getElementById('notes');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Handle drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        async function handleFile(file) {
+            if (!file.type.includes('pdf')) {
+                showError('Please upload a PDF file');
+                return;
+            }
+
+            // Show loading state
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            preview.style.display = 'none';
+            notes.innerHTML = '';
+
+            try {
+                // First, create a preview of the PDF
+                const fileReader = new FileReader();
+                fileReader.onload = async function() {
+                    const typedarray = new Uint8Array(this.result);
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                    
+                    preview.src = canvas.toDataURL();
+                    preview.style.display = 'block';
+                };
+                fileReader.readAsArrayBuffer(file);
+
+                // Then process the file for notes
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to process file');
+                }
+
+                // Display the notes
+                if (data.notes && data.notes.length > 0) {
+                    const notesList = document.createElement('div');
+                    notesList.id = 'notes';
+                    data.notes.forEach(note => {
+                        const noteElement = document.createElement('div');
+                        noteElement.className = 'note-item';
+                        noteElement.textContent = note;
+                        notesList.appendChild(noteElement);
+                    });
+                    notes.appendChild(notesList);
+                } else {
+                    notes.innerHTML = '<div class="note-item">No notes detected in the sheet music.</div>';
+                }
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+    </script>
+</body>
+</html> 

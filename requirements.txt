@@ -1,0 +1,11 @@
+Flask==2.0.1
+opencv-python==4.5.3.56
+numpy==1.21.2
+Pillow==8.3.2
+python-dotenv==0.19.0
+tensorflow==2.7.0
+keras==2.7.0
+music21==8.1.0  # For handling music notation
+jpype1==1.4.1   # For Java integration
+pdf2image==1.16.3  # For PDF processing
+poppler-utils>=21.03.0  # Required by pdf2image 
