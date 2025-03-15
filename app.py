@@ -17,7 +17,7 @@ app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024  # 32MB max file size for PD
 ALLOWED_EXTENSIONS = {'pdf'}
 
 # Update path to point to the Audiveris batch file
-AUDIVERIS_PATH = os.path.join(os.path.dirname(__file__), 'Audiverbis', 'bin', 'Audiveris.bat')
+AUDIVERIS_PATH = os.path.join(os.path.dirname(__file__), 'Audiveris', 'bin', 'Audiveris.bat')
 if not os.path.exists(AUDIVERIS_PATH):
     # Fallback to environment variable if not found in project directory
     AUDIVERIS_PATH = os.getenv('AUDIVERIS_PATH', AUDIVERIS_PATH)

@@ -19,7 +19,6 @@ A web application that reads sheet music from PDF files and displays detected no
 - OpenCV (for image processing)
 - NumPy (for numerical operations)
 - music21 (for music notation processing)
-- Audiveris OMR (Optical Music Recognition) engine
 - Java 11 or higher (required for Audiveris)
 
 ## Installation
@@ -35,10 +34,17 @@ cd sheet-music-reader
 pip install -r requirements.txt
 ```
 
-3. Install Audiveris:
-   - Download Audiveris from the official repository
-   - Set the AUDIVERIS_PATH environment variable to point to the Audiveris installation
-   - Ensure Java 11 or higher is installed on your system
+3. Install Java:
+   - Windows: Download and install Java 11 or higher from https://adoptium.net/
+   - Linux: `sudo apt-get install openjdk-11-jdk`
+   - macOS: `brew install openjdk@11`
+
+4. Verify Java installation:
+```bash
+java -version
+```
+
+Note: Audiveris is included in the repository under the `Audiveris` directory. The application will automatically use this version.
 
 ## Usage
 
@@ -84,9 +90,9 @@ python app.py
 
 ### Note Detection Problems
 - Make sure the sheet music is clear and well-scanned
-- Verify that Audiveris is properly installed and configured
-- Check the AUDIVERIS_PATH environment variable is set correctly
-- Ensure Java 11 or higher is installed and accessible
+- Verify that Java 11 or higher is installed and accessible
+- Check if the Audiveris directory is present in the project root
+- Ensure you have sufficient permissions to execute the Audiveris batch file
 
 ## License
 
