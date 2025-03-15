@@ -6,19 +6,21 @@ A web application that reads sheet music from PDF files and displays detected no
 
 - PDF file upload with drag-and-drop support
 - Real-time PDF preview using PDF.js
-- Automatic note detection from sheet music
+- Automatic note detection from sheet music using Audiveris OMR (Optical Music Recognition)
 - Interactive alto saxophone fingering chart
 - Responsive layout optimized for 1920x1080 displays
 - Clean, modern user interface
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.8 or higher
 - Flask
-- pdf2image
-- pytesseract
-- OpenCV (cv2)
-- NumPy
+- pdf2image (for converting PDFs to images)
+- OpenCV (for image processing)
+- NumPy (for numerical operations)
+- music21 (for music notation processing)
+- Audiveris OMR (Optical Music Recognition) engine
+- Java 11 or higher (required for Audiveris)
 
 ## Installation
 
@@ -28,15 +30,15 @@ git clone https://github.com/yourusername/sheet-music-reader.git
 cd sheet-music-reader
 ```
 
-2. Install the required Python packages:
+2. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Install Tesseract OCR:
-- Windows: Download and install from https://github.com/UB-Mannheim/tesseract/wiki
-- Linux: `sudo apt-get install tesseract-ocr`
-- macOS: `brew install tesseract`
+3. Install Audiveris:
+   - Download Audiveris from the official repository
+   - Set the AUDIVERIS_PATH environment variable to point to the Audiveris installation
+   - Ensure Java 11 or higher is installed on your system
 
 ## Usage
 
@@ -47,65 +49,44 @@ python app.py
 
 2. Open your web browser and navigate to `http://localhost:5000`
 
-3. Upload a PDF file containing sheet music:
-   - Drag and drop the file into the upload area
-   - Or click the upload area to select a file
+3. Upload a PDF file containing sheet music by dragging and dropping it into the upload area or clicking to select a file
 
 4. The application will:
-   - Display a preview of the PDF
-   - Process the sheet music to detect notes
-   - Show the detected notes in a grid layout
+   - Display a preview of the sheet music
+   - Process the image using Audiveris OMR to detect musical notes
+   - Show the detected notes below the preview
    - Display the alto saxophone fingering chart for reference
 
-## Project Structure
-
-```
-sheet_music_reader/
-├── app.py              # Main Flask application
-├── requirements.txt    # Python dependencies
-├── static/            # Static files
-│   └── Fingering_Chart.jpg
-└── templates/         # HTML templates
-    └── index.html     # Main application template
-```
-
-## Features in Detail
+## How It Works
 
 ### PDF Preview
-- Uses PDF.js for client-side PDF rendering
-- Shows the first page of the uploaded PDF
-- Maintains aspect ratio and quality
+- Uses PDF.js to render the first page of the uploaded PDF
+- Displays the sheet music in a clean, readable format
 
-### Note Detection
-- Processes PDF files to extract sheet music
-- Identifies musical notes using OCR
-- Displays notes in a clean, grid-based layout
+### Note Detection Process
+1. The PDF is converted to an image using pdf2image
+2. OpenCV is used to preprocess the image (grayscale, thresholding, etc.)
+3. Audiveris OMR analyzes the preprocessed image to identify musical notes
+4. The detected notes are extracted from the generated MusicXML file
+5. Notes are filtered and displayed in a grid layout
 
 ### Fingering Chart
-- Shows alto saxophone fingering positions
-- Sticky positioning for easy reference
-- Optimized size for 1920x1080 displays
+- Shows a comprehensive alto saxophone fingering chart
+- Stays visible while scrolling through the sheet music
+- Helps users identify the correct fingerings for detected notes
 
 ## Troubleshooting
 
-1. If the PDF preview doesn't show up:
-   - Ensure the PDF file is not corrupted
-   - Check browser console for any JavaScript errors
-   - Try refreshing the page
+### PDF Preview Issues
+- Ensure the PDF file is not corrupted
+- Try refreshing the page if the preview doesn't load
+- Check browser console for any JavaScript errors
 
-2. If notes are not detected:
-   - Ensure the PDF contains clear, readable sheet music
-   - Check if Tesseract OCR is properly installed
-   - Verify the PDF file permissions
-
-3. If the layout appears broken:
-   - Ensure your browser is up to date
-   - Try clearing browser cache
-   - Check if you're using a supported browser (Chrome, Firefox, Edge)
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Note Detection Problems
+- Make sure the sheet music is clear and well-scanned
+- Verify that Audiveris is properly installed and configured
+- Check the AUDIVERIS_PATH environment variable is set correctly
+- Ensure Java 11 or higher is installed and accessible
 
 ## License
 
