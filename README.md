@@ -7,9 +7,6 @@ A web application that reads sheet music from PDF files and displays detected no
 - PDF file upload with drag-and-drop support
 - Real-time PDF preview using PDF.js
 - Automatic note detection from sheet music using Audiveris OMR (Optical Music Recognition)
-- Interactive alto saxophone fingering chart
-- Responsive layout optimized for 1920x1080 displays
-- Clean, modern user interface
 
 ## Requirements
 
@@ -35,9 +32,8 @@ pip install -r requirements.txt
 ```
 
 3. Install Java:
-   - Windows: Download and install Java 11 or higher from https://adoptium.net/
-   - Linux: `sudo apt-get install openjdk-11-jdk`
-   - macOS: `brew install openjdk@11`
+   Download and install Java 11 or higher from https://adoptium.net/
+
 
 4. Verify Java installation:
 ```bash
